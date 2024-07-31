@@ -1,4 +1,35 @@
 CREATE TABLE comp (
-    hostName VARCHAR(20) UNIQUE NOT NULL,
-    
+    hostName VARCHAR(20) NOT NULL,
+    brand VARCHAR(20) NOT NULL,
+    Model VARCHAR(50) NOT NULL,
+    SN VARCHAR(30) UNIQUE NOT NULL,
+    purchaseDate DATE NOT NULL,
+    warrantyDate DATE NOT NULL,
+    PRIMARY KEY (hostName)
 );
+
+CREATE TABLE staff (
+    macId VARCHAR(25) NOT NULL,
+    firstName VARCHAR(35) NOT NULL,
+    lastName VARCHAR(35) NOT NULL,
+    department ENUM("Aids Awards", "Admission", "Systems", "Exam Schedules", "Student Service") NOT NULL,
+    PRIMARY KEY (macId)
+);
+
+/*
+2 initial staff will be created as UTS inventory and RO inventory, when a new computer object, it'll be assigned to either UTS or RO, indicating spare inventory
+*/
+
+CREATE TABLE compToStaff (
+    hostName VARCHAR(20) NOT NULL,
+    macId VARCHAR(25) NOT NULL,
+    assignedDate DATE NOT NULL,
+    FOREIGN KEY (hostName) REFERENCES comp(hostName),
+    FOREIGN KEY (macId) REFERENCES staff(macId),
+    PRIMARY KEY (hostName, macId)
+);
+
+/*
+compToStaff is historical, meaning it'll record all change of hands. 
+To acquire the most up to date machine assginment status, fetch those with the latest assignedDate
+*/
