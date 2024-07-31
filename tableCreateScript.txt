@@ -1,0 +1,4 @@
+CREATE TABLE comp (
+    hostName VARCHAR(20) UNIQUE NOT NULL,
+    
+);
