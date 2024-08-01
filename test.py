@@ -1,6 +1,3 @@
-from getpass import getpass
-from mysql.connector import connect, Error
-
 class MysqlCMD:
     def __init__(self) -> None:
         pass
@@ -28,38 +25,8 @@ class MysqlCMD:
     def createComp(self):
         items = ["Host name", "Brand", "Model", "SN", "Purchase Date", "Warranty Date"]
         record = tuple([input(f"{item}: ") for item in items])
-        query = "INSERT INTO comp VALUES (%s, %s, %s, %s, %s, %s)"
-        return (query, record)
+        return record
     
-    def createAssign(self):
-        items = ["Host name", "macID", "assignedDate"]
-        record = tuple([input(f"{item}: ") for item in items])
-        query = "INSERT INTO compToStaff VALUES (%s, %s, %s)"
-        return (query, record)
-
-
-
-
-
-try:
-    with connect(
-        host="localhost",
-        user = "root",
-        password = "R05yste3Ad31n",
-        database = "rodevices"
-    ) as connection:
-        with connection.cursor() as cursor:
-            cmd = MysqlCMD()
-            query = cmd.createAssign()
-            cursor.executemany(query[0], [query[1]])
-            connection.commit()
-            print("committed")
-            results = cursor.fetchall()
-            for result in results:
-                print(result)
-            
-
-
-
-except Error as e:
-    print(e)
+mysql = MysqlCMD()
+result = mysql.createComp()
+print(result)
