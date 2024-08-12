@@ -72,7 +72,7 @@ class MysqlCMD:
                 continue
         macId = input("macId: ")
         while not self.checkStaff(macId):
-            answer: str = input(f"staff of macId {hostName} not found, would you like to create first? [y/n]")
+            answer: str = input(f"staff of macId {macId} not found, would you like to create first? [y/n]")
             if (answer.lower() == 'n'):
                 raise Exception("macId not found, cannot assign to unknown staff")
             elif(answer.lower() == 'y'):
@@ -93,7 +93,45 @@ class MysqlCMD:
         for result in results:
             print(result)
         return (hostName, macId)
+    
+    def getCurrentSheet(self):
+        earlierAssignment = """
+        SELECT cts1.hostName, cts1.macId
+        FROM comptostaff AS cts1, comptostaff AS cts2
+        WHERE cts1.hostName = cts2.hostName AND cts1.assignedDate < cts2.assignedDate
+        """
+
+        laterAssignment = f"""
+        SELECT comp.*, cts3.assignedDate, staff.*
+        FROM comptostaff AS cts3
+        LEFT JOIN staff ON staff.macId = cts3.macId
+        LEFT JOIN comp ON comp.hostName = cts3.hostName
+        WHERE (cts3.hostName, cts3.macId) NOT IN ({earlierAssignment})
+        """
+
+        self.cursor.execute(laterAssignment)
+        results = self.cursor.fetchall()
+        for result in results:
+            print(result)
+
+        return len(results)
         
+    def retrieveComp(self):
+        hostName = input("host name: ")
+        if not self.checkComp(hostName):
+            raise Exception("machine with host name %s doesn't exist", hostName)
+        date = input("retrieve date: ")
+        command = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
+        record = (hostName, "UTS_SPARE", date)
+        self.cursor.execute(command, record)
+        self.connection.commit()
+
+        self.cursor.execute("SELECT * FROM comptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (hostName, date))
+        results = self.cursor.fetchall()
+        for result in results:
+            print(result)
+        return 0
+
 
 
 
@@ -108,7 +146,7 @@ def main():
             with connection.cursor() as cursor:
 
                 cmd = MysqlCMD(connection, cursor)
-                cmd.createAssign()
+                cmd.retrieveComp()
 
 
 
