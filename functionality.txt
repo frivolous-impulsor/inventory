@@ -1,0 +1,48 @@
+Create each object with input prompt
+
+Delete each object
+
+To create relation object:
+    receive input for non-referencing attributes *in date attribute, <enter> for today
+    for each attribute that references foreign table:
+        receive input
+        if input not referencing any existing foreign KEY   
+            successfulCreate = False
+            while not (successfulCreate)
+                create new object
+                if not successful:
+                    continue
+                successfulCreate = True
+    
+
+
+Unassign assignment(relation) object: 
+    input hostName
+    while not successful:
+        input hostName
+    create assignment between this hostname with spare and date
+
+currentAssignment:
+    query:
+    SELCT * 
+    FROM assignment
+    LEFT JOIN staff
+    LEFT JOIN comp
+    WHERE (hostname, macid) not in (*subsequent query*)
+
+    SELECT (hostname, macid)
+    FROM assignment As ass
+
+    EXCEPT
+
+    SELECT *.ass1
+    FROM assignment AS ass1, assignment As ass2 
+    WHERE ass1.date < ass2.date
+
+historyTableOfaMachine:
+    query:
+    SELECT *
+    FROM assignment
+    LEFT JOIN comp
+    LEFT JOIN staff
+    WHERE hostname = *parameter*
