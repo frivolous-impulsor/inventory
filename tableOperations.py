@@ -1,12 +1,13 @@
 from getpass import getpass
 from mysql.connector import connect, Error
 
+
 class MysqlCMD:
     def __init__(self, connection, cursor) -> None:
         self.connection = connection
         self.cursor = cursor
 
-    def createStaff(self) -> None:
+    def inputCreateStaff(self):
         firstName: str = input("First Name: ")
         lastName: str = input("Last Name: ")
         macId: str = input("macID: ")
@@ -23,21 +24,29 @@ class MysqlCMD:
                     department = "Systems"
                     fitDepart = True
         record = (macId, firstName, lastName, department)
-        query: str = "INSERT INTO staff VALUES (%s, %s, %s, %s);"
-        self.cursor.execute(query, record)
+        return record
+
+    def createStaff(self, record) -> None:
+
+
+        command: str = "INSERT INTO staff VALUES (%s, %s, %s, %s);"
+        self.cursor.execute(command, record)
         self.connection.commit()
 
-        self.cursor.execute("SELECT * FROM staff WHERE macId = %s;", (macId,))
+        self.cursor.execute("SELECT * FROM staff WHERE macId = %s;", (record[0],))
         results = self.cursor.fetchall()
         for result in results:
             print(result)
         return record[0]
-                
-    def createComp(self) -> None:
+    
+    def inputCreateComp(self):
         items = ["Host name", "Brand", "Model", "SN", "Purchase Date", "Warranty Date"]
         record = tuple([input(f"{item}: ") for item in items])
-        query = "INSERT INTO comp VALUES (%s, %s, %s, %s, %s, %s)"
-        self.cursor.execute(query, record)
+        return record
+
+    def createComp(self, record) -> None:
+        command = "INSERT INTO comp VALUES (%s, %s, %s, %s, %s, %s)"
+        self.cursor.execute(command, record)
         self.connection.commit()
 
         self.cursor.execute("SELECT * FROM comp WHERE hostName = %s;", (record[0],))
@@ -46,20 +55,19 @@ class MysqlCMD:
             print(result)
         return record[0]
     
-    def checkStaff(self, macId):
+    def checkStaff(self, macId) -> bool:
         query = "SELECT * FROM staff WHERE macId = %s OR firstName = %s OR lastName = %s;"
         self.cursor.execute(query, (macId,macId, macId))
         result = self.cursor.fetchall()
         return len(result) == 1
     
-    def checkComp(self, hostName):
+    def checkComp(self, hostName) -> bool:
         query = "SELECT * FROM comp WHERE hostName = %s"
         self.cursor.execute(query, (hostName,))
         result = self.cursor.fetchall()
         return len(result) == 1
 
-    
-    def createAssign(self):
+    def inputCreateAssign(self):
         hostName = input("host name: ")
         while not self.checkComp(hostName):
             answer: str = input(f"machine of host name {hostName} not found, would you like to create first? [y/n]")
@@ -82,17 +90,20 @@ class MysqlCMD:
                 continue
 
         date = input("date assigned: ")
+        return (hostName, macId, date)
+
+    def createAssign(self, record):
+        
         command = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
-        record = (hostName, macId, date)
         self.cursor.execute(command, record)
         self.connection.commit()
 
         query = "SELECT * FROM comptostaff WHERE hostName = %s AND macId = %s"
-        self.cursor.execute(query, (hostName, macId))
+        self.cursor.execute(query, (record[0], record[1]))
         results = self.cursor.fetchall()
         for result in results:
             print(result)
-        return (hostName, macId)
+        return (record[0], record[1])
     
     def getCurrentSheet(self):
         earlierAssignment = """
@@ -116,23 +127,25 @@ class MysqlCMD:
 
         return len(results)
         
-    def retrieveComp(self):
+    def inputRetrieveComp(self):
         hostName = input("host name: ")
         if not self.checkComp(hostName):
-            raise Exception("machine with host name %s doesn't exist", hostName)
+            raise Exception(f"machine with host name {hostName} doesn't exist")
         date = input("retrieve date: ")
+        return (hostName, "UTS_SPARE", date)
+
+    def retrieveComp(self, record):
         command = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
-        record = (hostName, "UTS_SPARE", date)
         self.cursor.execute(command, record)
         self.connection.commit()
 
-        self.cursor.execute("SELECT * FROM comptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (hostName, date))
+        self.cursor.execute("SELECT * FROM comptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (record[0], record[2]))
         results = self.cursor.fetchall()
         for result in results:
             print(result)
         return 0
 
-
+    
 
 
 def main():
@@ -146,7 +159,8 @@ def main():
             with connection.cursor() as cursor:
 
                 cmd = MysqlCMD(connection, cursor)
-                cmd.retrieveComp()
+                cmd.createStaff(cmd.inputCreateStaff())
+
 
 
 
