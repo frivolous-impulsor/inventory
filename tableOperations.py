@@ -144,6 +144,25 @@ class MysqlCMD:
         for result in results:
             print(result)
         return 0
+    
+    def shortCommand(self):
+        command: str = input("=>").lower()
+        if "create staff" in command:
+            self.createStaff(self.inputCreateStaff())
+        elif "create comp" in command:
+            self.createComp(self.inputCreateComp())
+        elif "assign" in command:
+            self.createAssign(self.inputCreateAssign())
+        elif "current" in command:
+            self.getCurrentSheet()
+        elif "select" in command:
+            self.cursor.execute(command)
+            results = self.cursor.fetchall()
+            for result in results:
+                print(result)
+        else:
+            raise Exception("unrecognized command")
+
 
     
 
@@ -159,7 +178,7 @@ def main():
             with connection.cursor() as cursor:
 
                 cmd = MysqlCMD(connection, cursor)
-                cmd.createStaff(cmd.inputCreateStaff())
+                cmd.shortCommand()
 
 
 
