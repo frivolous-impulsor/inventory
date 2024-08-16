@@ -1,5 +1,6 @@
 from getpass import getpass
 from mysql.connector import connect, Error
+from datetime import datetime
 
 
 class MysqlCMD:
@@ -51,8 +52,15 @@ class MysqlCMD:
 
         self.cursor.execute("SELECT * FROM comp WHERE hostName = %s;", (record[0],))
         results = self.cursor.fetchall()
+        print("comp create successful: ")
         for result in results:
             print(result)
+
+        commandCreateCurrent = "INSERT INTO currentCompToStaff VALUES (%s, %s, %s)"
+        commandCreateHistory = "INSERT INTO compToStaff VALUES (%s, %s, %s)"
+        self.cursor.execute(commandCreateCurrent, (record[0], "UTS_SPARE", datetime.today().strftime('%Y-%m-%d')))
+        self.cursor.execute(commandCreateHistory, (record[0], "UTS_SPARE", datetime.today().strftime('%Y-%m-%d')))
+        self.connection.commit()
         return record[0]
     
     def checkStaff(self, macId) -> bool:
@@ -93,34 +101,49 @@ class MysqlCMD:
         return (hostName, macId, date)
 
     def createAssign(self, record):
-        
-        command = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
-        self.cursor.execute(command, record)
+        hostName = record[0]
+        macId = record[1]
+        assignedDate = record[2]
+        commandHistory = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
+        self.cursor.execute(commandHistory, record)
+
+        commandCurrent = "UPDATE currentCompToStaff SET macId = %s, assignedDate = %s WHERE hostName = %s"
+        self.cursor.execute(commandCurrent, (macId, assignedDate, hostName))
+
         self.connection.commit()
+
 
         query = "SELECT * FROM comptostaff WHERE hostName = %s AND macId = %s"
         self.cursor.execute(query, (record[0], record[1]))
         results = self.cursor.fetchall()
+        print("assignment sucessful:")
         for result in results:
             print(result)
         return (record[0], record[1])
     
     def getCurrentSheet(self):
-        earlierAssignment = """
-        SELECT cts1.hostName, cts1.macId
-        FROM comptostaff AS cts1, comptostaff AS cts2
-        WHERE cts1.hostName = cts2.hostName AND cts1.assignedDate < cts2.assignedDate
+#        earlierAssignment = """
+#        SELECT cts1.hostName, cts1.macId
+#        FROM comptostaff AS cts1, comptostaff AS cts2
+#        WHERE cts1.hostName = cts2.hostName AND cts1.assignedDate < cts2.assignedDate
+#        """
+
+#        laterAssignment = f"""
+#        SELECT comp.*, cts3.assignedDate, staff.*
+#        FROM comptostaff AS cts3
+#        LEFT JOIN staff ON staff.macId = cts3.macId
+#        LEFT JOIN comp ON comp.hostName = cts3.hostName
+#        WHERE (cts3.hostName, cts3.macId) NOT IN ({earlierAssignment})
+#        """
+
+        query = """
+        SELECT comp.*, staff.*
+        FROM currentCompToStaff AS cts
+        LEFT JOIN comp ON comp.hostName = cts.hostName
+        LEFT JOIN staff ON staff.macId = cts.macId
         """
 
-        laterAssignment = f"""
-        SELECT comp.*, cts3.assignedDate, staff.*
-        FROM comptostaff AS cts3
-        LEFT JOIN staff ON staff.macId = cts3.macId
-        LEFT JOIN comp ON comp.hostName = cts3.hostName
-        WHERE (cts3.hostName, cts3.macId) NOT IN ({earlierAssignment})
-        """
-
-        self.cursor.execute(laterAssignment)
+        self.cursor.execute(query)
         results = self.cursor.fetchall()
         for result in results:
             print(result)
