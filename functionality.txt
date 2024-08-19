@@ -28,7 +28,7 @@ currentAssignment:
     FROM assignment
     LEFT JOIN staff
     LEFT JOIN comp
-    WHERE (hostname, macid) not in (*subsequent query*)
+    WHERE (hostname, macid) in (*subsequent query*)
 
     SELECT (hostname, macid)
     FROM assignment As ass

@@ -1,12 +1,37 @@
 from getpass import getpass
 from mysql.connector import connect, Error
 from datetime import datetime
+import re
 
 
 class MysqlCMD:
     def __init__(self, connection, cursor) -> None:
         self.connection = connection
         self.cursor = cursor
+        self.dateFormat: str = "yyyy-mm-dd"
+
+    def inputDate(self, occasion: str, allowEnterToday: bool):
+        msg: str
+        if allowEnterToday:
+            msg = f"{occasion} <{self.dateFormat}>, <enter> for today: "
+        else:
+            msg = f"{occasion} <{self.dateFormat}>: "
+        date: str = input(msg)
+
+        date.strip()
+        pattern = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+
+        while True:
+            
+            if(allowEnterToday and date == ''):
+                date = datetime.today().strftime('%Y-%m-%d')
+                break
+            elif (len(date) == len(self.dateFormat) and pattern.match(date)):
+                break
+            date: str = input(f"date formate error! {occasion} <{self.dateFormat}>, <enter> for today: ")
+            date.strip()
+        return date
+        
 
     def inputCreateStaff(self):
         firstName: str = input("First Name: ")
@@ -41,8 +66,9 @@ class MysqlCMD:
         return record[0]
     
     def inputCreateComp(self):
-        items = ["Host name", "Brand", "Model", "SN", "Purchase Date", "Warranty Date"]
-        record = tuple([input(f"{item}: ") for item in items])
+        nonDateItems = ["Host name", "Brand", "Model", "SN"]
+
+        record = tuple([input(f"{item}: ") for item in nonDateItems] + [self.inputDate("purchase date", False), self.inputDate("warranty expire date", False)])
         return record
 
     def createComp(self, record) -> None:
@@ -97,7 +123,7 @@ class MysqlCMD:
                 print("invalid answer")
                 continue
 
-        date = input("date assigned: ")
+        date = self.inputDate("assignment date", True)
         return (hostName, macId, date)
 
     def createAssign(self, record):
@@ -148,21 +174,30 @@ class MysqlCMD:
         for result in results:
             print(result)
 
-        return len(results)
+        return results
         
     def inputRetrieveComp(self):
         hostName = input("host name: ")
-        if not self.checkComp(hostName):
-            raise Exception(f"machine with host name {hostName} doesn't exist")
-        date = input("retrieve date: ")
+        while not self.checkComp(hostName):
+            hostName = input(f"machine with host name {hostName} doesn't exist, try again: ")
+
+        date = self.inputDate("retrieve date", True)
         return (hostName, "UTS_SPARE", date)
 
     def retrieveComp(self, record):
-        command = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
-        self.cursor.execute(command, record)
+        hostName = record[0]
+        macId = record[1]
+        date = record[2]
+
+        commandHistory = "INSERT INTO comptostaff VALUES (%s, %s, %s)"
+        self.cursor.execute(commandHistory, record)
+
+        commandCurrent = "UPDATE currentCompToStaff SET macId = %s, asssignedDate = %s WHERE hostName = %d"
+        self.cursor.execute(commandCurrent, (macId, date, hostName))
+
         self.connection.commit()
 
-        self.cursor.execute("SELECT * FROM comptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (record[0], record[2]))
+        self.cursor.execute("SELECT * FROM currentComptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (record[0], record[2]))
         results = self.cursor.fetchall()
         for result in results:
             print(result)

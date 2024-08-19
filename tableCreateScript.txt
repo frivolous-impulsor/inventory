@@ -29,6 +29,17 @@ CREATE TABLE compToStaff (
     PRIMARY KEY (hostName, macId)
 );
 
+CREATE TABLE currentCompToStaff(
+    hostName VARCHAR(20) NOT NULL,
+    macId VARCHAR(25) NOT NULL,
+    assignedDate DATE NOT NULL,
+    FOREIGN KEY (hostName) REFERENCES comp(hostName),
+    FOREIGN KEY (macId) REFERENCES staff(macId),
+    PRIMARY KEY (hostName, macId)
+);
+
+
+INSERT INTO staff VALUES ("UTS_SPARE", "UTS", "SPARE", "Systems");
 /*
 compToStaff is historical, meaning it'll record all change of hands. 
 To acquire the most up to date machine assginment status, fetch those with the latest assignedDate
