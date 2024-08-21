@@ -12,7 +12,7 @@ CREATE TABLE staff (
     macId VARCHAR(25) NOT NULL,
     firstName VARCHAR(35) NOT NULL,
     lastName VARCHAR(35) NOT NULL,
-    department ENUM("Aids Awards", "Admission", "Systems", "Exam Schedules", "Student Service") NOT NULL,
+    department ENUM("admissions", "aid and awards", "central office", "communications", "records", "recruitment", "ROIT inventory", "scheduling and exams", "student services", "systems", "UTS inventory") NOT NULL,
     PRIMARY KEY (macId)
 );
 

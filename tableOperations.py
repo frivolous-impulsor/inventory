@@ -4,6 +4,7 @@ from datetime import datetime
 import re
 
 
+
 class MysqlCMD:
     def __init__(self, connection, cursor) -> None:
         self.connection = connection
@@ -34,21 +35,20 @@ class MysqlCMD:
         
 
     def inputCreateStaff(self):
+        
+
         firstName: str = input("First Name: ")
         lastName: str = input("Last Name: ")
         macId: str = input("macID: ")
-        print("1: Aids Awards\n2: Systems\n3: Admission")
-        departmentEnum: int = int(input("department: "))
-        department: str
-        fitDepart = False
-        while not fitDepart:
-            match departmentEnum:
-                case 1:
-                    department = "aids awards"
-                    fitDepart = True
-                case 2:
-                    department = "Systems"
-                    fitDepart = True
+        depts: list[str] = ["admissions", "aid and awards", "central office", "communications", "records", "recruitment", "ROIT inventory", "scheduling and exams", "student services", "systems", "UTS inventory"]
+        for i, dept in enumerate(depts):
+            print(f"{i} : {dept}")
+        deptI: int = int(input("department: "))
+        while deptI < 0 or deptI >= len(depts):
+            deptI: int = int(input("invalid choice, pick the number that correspond to a department.\ndepartment: "))
+        
+        department: str = depts[deptI]
+
         record = (macId, firstName, lastName, department)
         return record
 
