@@ -52,18 +52,21 @@ class MysqlCMD:
         record = (macId, firstName, lastName, department)
         return record
 
-    def createStaff(self, record) -> None:
+    def createStaff(self, record) -> str:
 
+        macId = record[0]
+        if self.checkStaff(macId):
+            print("a user with same macId already exists!")
+        else:
+            command: str = "INSERT INTO staff VALUES (%s, %s, %s, %s);"
+            self.cursor.execute(command, record)
+            self.connection.commit()
 
-        command: str = "INSERT INTO staff VALUES (%s, %s, %s, %s);"
-        self.cursor.execute(command, record)
-        self.connection.commit()
-
-        self.cursor.execute("SELECT * FROM staff WHERE macId = %s;", (record[0],))
+        self.cursor.execute("SELECT * FROM staff WHERE macId = %s;", (macId,))
         results = self.cursor.fetchall()
         for result in results:
             print(result)
-        return record[0]
+        return macId
     
     def inputCreateComp(self):
         nonDateItems = ["Host name", "Brand", "Model", "SN"]
@@ -72,13 +75,16 @@ class MysqlCMD:
         return record
 
     def createComp(self, record) -> None:
-        command = "INSERT INTO comp VALUES (%s, %s, %s, %s, %s, %s)"
-        self.cursor.execute(command, record)
-        self.connection.commit()
+        hostName = record[0]
+        if self.checkComp(hostName):
+            print(f"a computer with host name {hostName} already exists")
+        else:
+            command = "INSERT INTO comp VALUES (%s, %s, %s, %s, %s, %s)"
+            self.cursor.execute(command, record)
+            self.connection.commit()
 
-        self.cursor.execute("SELECT * FROM comp WHERE hostName = %s;", (record[0],))
+        self.cursor.execute("SELECT * FROM comp WHERE hostName = %s;", (hostName,))
         results = self.cursor.fetchall()
-        print("comp create successful: ")
         for result in results:
             print(result)
 
@@ -204,22 +210,23 @@ class MysqlCMD:
         return 0
     
     def shortCommand(self):
-        command: str = input("=>").lower()
-        if "create staff" in command:
-            self.createStaff(self.inputCreateStaff())
-        elif "create comp" in command:
-            self.createComp(self.inputCreateComp())
-        elif "assign" in command:
-            self.createAssign(self.inputCreateAssign())
-        elif "current" in command:
-            self.getCurrentSheet()
-        elif "select" in command:
-            self.cursor.execute(command)
-            results = self.cursor.fetchall()
-            for result in results:
-                print(result)
-        else:
-            raise Exception("unrecognized command")
+        while True:
+            command: str = input("=> ").lower()
+            if "add staff" in command:
+                self.createStaff(self.inputCreateStaff())
+            elif "add comp" in command:
+                self.createComp(self.inputCreateComp())
+            elif "assign" in command:
+                self.createAssign(self.inputCreateAssign())
+            elif "current" in command:
+                self.getCurrentSheet()
+            elif "select" in command:
+                self.cursor.execute(command)
+                results = self.cursor.fetchall()
+                for result in results:
+                    print(result)
+            else:
+                print("unrecognized command, try again")
 
 
     
