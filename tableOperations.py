@@ -195,7 +195,7 @@ class MysqlCMD:
             print(result)
         return 0
     
-    def inputProblem(self):
+    def inputCreateProblem(self):
         hostName: str = input("host name: ")
         while not self.checkComp(hostName):
             hostName = input(f"no computer with host name {hostName} exists, try again\nhost name: ")
@@ -207,7 +207,6 @@ class MysqlCMD:
     def createProblem(self, record):
         hostName = record[0]
         problem = record[1]
-        problemDate = record[2]
         command = "INSERT INTO problem(hostName, problem, problemDate) VALUES (%s, %s, %s)"
         self.cursor.execute(command, record)
         self.connection.commit()
@@ -225,6 +224,8 @@ class MysqlCMD:
                 self.createStaff(self.inputCreateStaff())
             elif "add comp" in command:
                 self.createComp(self.inputCreateComp())
+            elif "add problem" in command:
+                self.createProblem(self.inputCreateProblem())
             elif "assign" in command:
                 self.createAssign(self.inputCreateAssign())
             elif "current" in command:
