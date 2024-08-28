@@ -220,21 +220,27 @@ class MysqlCMD:
     def shortCommand(self):
         while True:
             command: str = input("=> ").lower()
-            if "add staff" in command:
+            if "add staff" == command:
                 self.createStaff(self.inputCreateStaff())
-            elif "add comp" in command:
+            elif "add comp" == command:
                 self.createComp(self.inputCreateComp())
-            elif "add problem" in command:
+            elif "add problem" == command:
                 self.createProblem(self.inputCreateProblem())
-            elif "assign" in command:
+            elif "assign" == command:
                 self.createAssign(self.inputCreateAssign())
-            elif "current" in command:
+            elif "current" == command:
                 self.getCurrentSheet()
             elif "select" in command:
                 self.cursor.execute(command)
                 results = self.cursor.fetchall()
                 for result in results:
                     print(result)
+            elif "update" in command:
+                if not "where" in command:
+                    print("udpate is not specified with WHERE clause, dangerouse")
+                else:
+                    self.cursor.execute(command)
+                    self.connection.commit()
             else:
                 print("unrecognized command, try again")
 
@@ -254,9 +260,6 @@ def main():
 
                 cmd = MysqlCMD(connection, cursor)
                 cmd.shortCommand()
-
-
-
 
     except Error as e:
         print(e)
