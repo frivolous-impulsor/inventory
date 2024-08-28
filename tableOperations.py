@@ -11,6 +11,18 @@ class MysqlCMD:
         self.cursor = cursor
         self.dateFormat: str = "yyyy-mm-dd"
 
+    def checkStaff(self, macId) -> bool:
+        query = "SELECT * FROM staff WHERE macId = %s"
+        self.cursor.execute(query, (macId,))
+        result = self.cursor.fetchall()
+        return len(result) == 1
+    
+    def checkComp(self, hostName) -> bool:
+        query = "SELECT * FROM comp WHERE hostName = %s"
+        self.cursor.execute(query, (hostName,))
+        result = self.cursor.fetchall()
+        return len(result) == 1
+
     def inputDate(self, occasion: str, allowEnterToday: bool):
         msg: str
         if allowEnterToday:
@@ -35,11 +47,9 @@ class MysqlCMD:
         
 
     def inputCreateStaff(self):
-        
-
+        macId: str = input("macID: ")
         firstName: str = input("First Name: ")
         lastName: str = input("Last Name: ")
-        macId: str = input("macID: ")
         depts: list[str] = ["admissions", "aid and awards", "central office", "communications", "records", "recruitment", "ROIT inventory", "scheduling and exams", "student services", "systems", "UTS inventory"]
         for i, dept in enumerate(depts):
             print(f"{i} : {dept}")
@@ -95,17 +105,7 @@ class MysqlCMD:
         self.connection.commit()
         return record[0]
     
-    def checkStaff(self, macId) -> bool:
-        query = "SELECT * FROM staff WHERE macId = %s OR firstName = %s OR lastName = %s;"
-        self.cursor.execute(query, (macId,macId, macId))
-        result = self.cursor.fetchall()
-        return len(result) == 1
-    
-    def checkComp(self, hostName) -> bool:
-        query = "SELECT * FROM comp WHERE hostName = %s"
-        self.cursor.execute(query, (hostName,))
-        result = self.cursor.fetchall()
-        return len(result) == 1
+
 
     def inputCreateAssign(self):
         hostName = input("host name: ")
@@ -146,7 +146,7 @@ class MysqlCMD:
 
 
         query = "SELECT * FROM comptostaff WHERE hostName = %s AND macId = %s"
-        self.cursor.execute(query, (record[0], record[1]))
+        self.cursor.execute(query, (hostName, macId))
         results = self.cursor.fetchall()
         print("assignment sucessful:")
         for result in results:
@@ -154,20 +154,6 @@ class MysqlCMD:
         return (record[0], record[1])
     
     def getCurrentSheet(self):
-#        earlierAssignment = """
-#        SELECT cts1.hostName, cts1.macId
-#        FROM comptostaff AS cts1, comptostaff AS cts2
-#        WHERE cts1.hostName = cts2.hostName AND cts1.assignedDate < cts2.assignedDate
-#        """
-
-#        laterAssignment = f"""
-#        SELECT comp.*, cts3.assignedDate, staff.*
-#        FROM comptostaff AS cts3
-#        LEFT JOIN staff ON staff.macId = cts3.macId
-#        LEFT JOIN comp ON comp.hostName = cts3.hostName
-#        WHERE (cts3.hostName, cts3.macId) NOT IN ({earlierAssignment})
-#        """
-
         query = """
         SELECT comp.*, staff.*
         FROM currentCompToStaff AS cts
@@ -203,11 +189,34 @@ class MysqlCMD:
 
         self.connection.commit()
 
-        self.cursor.execute("SELECT * FROM currentComptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (record[0], record[2]))
+        self.cursor.execute("SELECT * FROM currentComptostaff AS cts WHERE cts.hotsName = %s AND cts.date = %s", (hostName, date))
         results = self.cursor.fetchall()
         for result in results:
             print(result)
         return 0
+    
+    def inputProblem(self):
+        hostName: str = input("host name: ")
+        while not self.checkComp(hostName):
+            hostName = input(f"no computer with host name {hostName} exists, try again\nhost name: ")
+        problem: str = input("problem: ")
+        problemDate = self.inputDate("problem date", True)
+        record = (hostName, problem, problemDate)
+        return record
+    
+    def createProblem(self, record):
+        hostName = record[0]
+        problem = record[1]
+        problemDate = record[2]
+        command = "INSERT INTO problem(hostName, problem, problemDate) VALUES (%s, %s, %s)"
+        self.cursor.execute(command, record)
+        self.connection.commit()
+
+        self.cursor.execute("SELECT * FROM problem WHERE hostName = %s AND problem = %s", (hostName, problem))
+        result = self.cursor.fetchall()
+        print(result[0])
+        return 0
+
     
     def shortCommand(self):
         while True:

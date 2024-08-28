@@ -8,6 +8,16 @@ CREATE TABLE comp (
     PRIMARY KEY (hostName)
 );
 
+
+CREATE TABLE problem (
+    pid INT NOT NULL AUTO_INCREMENT,
+    hostName VARCHAR(20) NOT NULL,
+    problem VARCHAR(255) NOT NULL,
+    probleDate DATE NOT NULL,
+    FOREIGN KEY (hostName) REFERENCES comp(hostName),
+    PRIMARY KEY(pid)
+);
+
 CREATE TABLE staff (
     macId VARCHAR(25) NOT NULL,
     firstName VARCHAR(35) NOT NULL,
