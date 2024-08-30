@@ -153,7 +153,7 @@ class MysqlCMD:
             print(result)
         return (record[0], record[1])
     
-    def getCurrentSheet(self):
+    def printCurrentSheet(self):
         query = """
         SELECT comp.*, staff.*
         FROM currentCompToStaff AS cts
@@ -166,7 +166,18 @@ class MysqlCMD:
         for result in results:
             print(result)
 
+    def getCurrentSheet(self):
+        query = """
+        SELECT comp.*, staff.*
+        FROM currentCompToStaff AS cts
+        LEFT JOIN comp ON comp.hostName = cts.hostName
+        LEFT JOIN staff ON staff.macId = cts.macId
+        """
+
+        self.cursor.execute(query)
+        results = self.cursor.fetchall()
         return results
+
         
     def inputRetrieveComp(self):
         hostName = input("host name: ")
@@ -216,10 +227,11 @@ class MysqlCMD:
         print(result[0])
         return 0
 
+
     
     def shortCommand(self):
         while True:
-            command: str = input("=> ").lower()
+            command: str = input("=> ").lower().strip()
             if "add staff" == command:
                 self.createStaff(self.inputCreateStaff())
             elif "add comp" == command:

@@ -50,6 +50,9 @@ CREATE TABLE currentCompToStaff(
 
 
 INSERT INTO staff VALUES ("UTS_SPARE", "UTS", "SPARE", "Systems");
+
+
+
 /*
 compToStaff is historical, meaning it'll record all change of hands. 
 To acquire the most up to date machine assginment status, fetch those with the latest assignedDate
