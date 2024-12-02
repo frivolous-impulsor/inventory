@@ -265,7 +265,7 @@ def main():
         with connect(
             host="localhost",
             user = "root",
-            password = "R05yste3Ad31n",
+            password = "testPassword",
             database = "rodevices"
         ) as connection:
             with connection.cursor() as cursor:
